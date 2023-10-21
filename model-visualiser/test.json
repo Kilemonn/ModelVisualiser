@@ -1,0 +1,9 @@
+{
+  "string-key": "test",
+  "int-key": 12309,
+  "bool-key": true,
+  "object-key": {
+    "sub-object-key1": "another test"
+  },
+  "array-key": [11, 22, 33, 44]
+}
