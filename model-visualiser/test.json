@@ -5,5 +5,13 @@
   "object-key": {
     "sub-object-key1": "another test"
   },
-  "array-key": [11, 22, 33, 44]
+  "array-key": [11, 22, 33, 44],
+  "empty-array": [],
+  "object-array": [
+    {
+      "test": "hi",
+      "num": 124
+    }
+  ],
+  "empty-object": {}
 }
