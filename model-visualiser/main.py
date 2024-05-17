@@ -10,13 +10,12 @@ CLUSTER_PREFIX: str = "cluster_"
 
 
 def main():
-    output_format = "png"
-    if len(sys.argv) > 1:
-        file_name = sys.argv[1]
-    else:
+    if len(sys.argv) <= 0:
         print("Expected JSON file path as first program argument.")
         return
 
+    output_format = "png"
+    file_name = sys.argv[1]
     graph = graphviz.Digraph()
     with open(file_name, "r") as file:
         model = json.loads(file.read())
