@@ -1,0 +1,88 @@
+{
+  "result": [
+    {
+      "status": "disabled",
+      "name": {
+        "first": "Geovanny",
+        "middle": "Greer",
+        "last": "Bartell"
+      },
+      "username": "Geovanny-Bartell",
+      "password": "gB1GExgHcMERNQx",
+      "emails": [
+        "Khalid.Emard@example.com",
+        "Jaylen24@example.com"
+      ],
+      "phoneNumber": "288.268.1025 x98546",
+      "location": {
+        "street": "40420 Liam Groves",
+        "city": "West Ismael",
+        "state": "California",
+        "country": "Slovakia",
+        "zip": "73599-0107",
+        "coordinates": {
+          "latitude": -19.0227,
+          "longitude": -114.5192
+        }
+      },
+      "website": "https://considerate-alternative.org/",
+      "domain": "eminent-businessman.org",
+      "job": {
+        "title": "Investor Tactics Liaison",
+        "descriptor": "Product",
+        "area": "Optimization",
+        "type": "Designer",
+        "company": "Bailey LLC"
+      },
+      "creditCard": {
+        "number": "3537-1222-7026-4375",
+        "cvv": "640",
+        "issuer": "jcb"
+      },
+      "uuid": "4793b50f-20b2-4e61-a542-72f59c6ab0c1",
+      "objectId": "66472dd425aa8937f0726c5b"
+    },
+    {
+      "status": "active",
+      "name": {
+        "first": "Zoie",
+        "middle": "Phoenix",
+        "last": "Metz"
+      },
+      "username": "Zoie-Metz",
+      "password": "egwQEHewlUghZdo",
+      "emails": [
+        "Zachariah48@example.com",
+        "Elijah_Nienow44@example.com"
+      ],
+      "phoneNumber": "867.257.8061 x2795",
+      "location": {
+        "street": "8374 Amari Harbors",
+        "city": "Erickacester",
+        "state": "Ohio",
+        "country": "Rwanda",
+        "zip": "59233-5025",
+        "coordinates": {
+          "latitude": 51.892,
+          "longitude": 73.5309
+        }
+      },
+      "website": "https://apprehensive-cheddar.name",
+      "domain": "good-rider.org",
+      "job": {
+        "title": "Dynamic Research Officer",
+        "descriptor": "Future",
+        "area": "Markets",
+        "type": "Associate",
+        "company": "Douglas and Sons"
+      },
+      "creditCard": {
+        "number": "4428809665127",
+        "cvv": "158",
+        "issuer": "jcb"
+      },
+      "uuid": "377c3326-835a-4897-8731-2cda426edc0d",
+      "objectId": "66472dd425aa8937f0726c5c"
+    }
+  ]
+}
