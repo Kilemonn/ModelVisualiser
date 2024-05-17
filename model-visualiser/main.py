@@ -16,7 +16,7 @@ def main():
 
     output_format = "png"
     file_name = sys.argv[1]
-    graph = graphviz.Digraph()
+    graph = graphviz.Digraph(node_attr={'shape': 'record'})
     with open(file_name, "r") as file:
         model = json.loads(file.read())
         create_nodes(graph, model)
