@@ -5,35 +5,31 @@ import graphviz
 
 def main():
     output_format = "png"
-    graph = graphviz.Digraph(node_attr={'shape': 'record'})
     file_name = "test.json"
+
+    graph = graphviz.Digraph(node_attr={'shape': 'record'})
     with open(file_name, 'r') as file:
         model = json.loads(file.read())
         create_nodes(graph, model)
+    graph.render(outfile=output_file_name(file_name, output_format), format=output_format)
 
-    graph.render(outfile=file_name.split(".")[0] + "." + output_format, format=output_format)
 
-
-def create_nodes(graph: graphviz.Digraph, model: dict, name: str = "root") -> str:
-    ret = None
-    with graph.subgraph(name="cluster_" + name) as g:
-        g.attr(label=name)
+def create_nodes(graph: graphviz.Digraph, model: dict, name_path: str = "root") -> str:
+    placeholder_name = name_path + "_empty"
+    with graph.subgraph(name="cluster_" + name_path) as g:
+        g.attr(label=name_path)
         for key in model:
             key_type = type(model[key])
-            property_name = key + " - " + key_type.__name__
+            property_name = name_path + "/" + key + " - " + key_type.__name__
             if isinstance(model[key], list):
-                property_name = handle_list(g, graph, model[key], key, property_name)
+                property_name = handle_list(g, graph, model[key], name_path + "/" + key, property_name)
 
-            if ret is None:
-                ret = property_name
-            g.node(name=property_name, label=property_name, shape="record")
             if isinstance(model[key], dict):
-                handle_dict(g, graph, model[key], key)
-
-        if ret is None:
-            ret = name + "_empty"
-            g.node(name=ret, label="")
-    return ret
+                handle_dict(g, graph, model[key], name_path + "/" + key)
+            else:
+                g.node(name=property_name, label=property_name, shape="record")
+        g.node(name=placeholder_name, label="")
+    return placeholder_name
 
 
 def handle_list(subgraph: graphviz.Digraph, graph: graphviz.Digraph, model: list, key: str, property_name: str) -> str:
@@ -58,6 +54,14 @@ def handle_dict(subgraph: graphviz.Digraph, graph: graphviz.Digraph, model: dict
         pass
     else:
         subgraph.edge(key, r)
+
+
+def output_file_name(input_file_name: str, output_format: str) -> str:
+    PERIOD = "."
+    split = input_file_name.split(PERIOD)
+    if len(split) > 0:
+        return split[0] + PERIOD + output_format
+    return input_file_name + PERIOD + output_format
 
 
 if __name__ == '__main__':
