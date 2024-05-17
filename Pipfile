@@ -5,6 +5,8 @@ name = "pypi"
 
 [packages]
 graphviz = "*"
+pyyaml = "*"
+puremagic = "*"
 
 [dev-packages]
 

@@ -25,20 +25,20 @@ def main():
 
 def create_nodes(graph: graphviz.Digraph, model: dict, name_path: str = ROOT_PATH) -> str:
     placeholder_name = name_path + EMPTY_SUFFIX
-    with graph.subgraph(name=CLUSTER_PREFIX + name_path) as g:
-        g.attr(label=name_path)
+    with graph.subgraph(name=CLUSTER_PREFIX + name_path) as subgraph:
+        subgraph.attr(label=name_path)
         for key in model:
             key_type = type(model[key])
             property_path = name_path + "/" + key
             property_name = property_path + " - " + key_type.__name__
             if isinstance(model[key], list):
-                property_name = handle_list(g, graph, model[key], property_path, property_name)
+                property_name = handle_list(subgraph, graph, model[key], property_path, property_name)
             if isinstance(model[key], dict):
-                handle_dict(g, graph, model[key], property_path)
+                handle_dict(subgraph, graph, model[key], property_path)
             else:
-                g.node(name=property_name, label=property_name)
+                subgraph.node(name=property_name, label=property_name)
 
-        g.node(name=placeholder_name, label="")
+        subgraph.node(name=placeholder_name, label="")
 
     return placeholder_name
 
@@ -47,16 +47,16 @@ def handle_list(subgraph: graphviz.Digraph, graph: graphviz.Digraph, model: list
     if len(model) > 0:
         list_type = type(model[0])
         if isinstance(model[0], dict):
-            r = create_nodes(graph, model[0], key)
-            subgraph.edge(key, r)
+            placeholder_property = create_nodes(graph, model[0], key)
+            subgraph.edge(key, placeholder_property)
         else:
             property_name = property_name + "[" + list_type.__name__ + "]"
     return property_name
 
 
 def handle_dict(subgraph: graphviz.Digraph, graph: graphviz.Digraph, model: dict, key: str):
-    r = create_nodes(graph, model, key)
-    subgraph.edge(key, r)
+    placeholder_property = create_nodes(graph, model, key)
+    subgraph.edge(key, placeholder_property)
 
 
 def output_file_name(input_file_name: str, output_format: str) -> str:

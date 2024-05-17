@@ -1,5 +1,5 @@
 # ModelVisualiser
-A visualiser tool that is able to visualise complex JSON and XML model objects.
+A visualiser tool that is able to visualise complex JSON, YAML and XML model objects.
 
 # Getting Started
 
@@ -10,6 +10,9 @@ Install pipenv:
 
 Call pipenv to install required dependencies:
 > pipenv install
+
+Install new dependency:
+> pipenv install <package-name>
 
 ## Locking and Updating pipe
 
