@@ -31,10 +31,11 @@ def create_nodes(graph: graphviz.Digraph, model: dict, name_path: str = ROOT_PAT
             key_type = type(model[key])
             property_path = name_path + "/" + key
             property_name = property_path + " - " + key_type.__name__
-            if isinstance(model[key], list):
-                property_name = handle_list(subgraph, graph, model[key], property_path, property_name)
-            if isinstance(model[key], dict):
-                handle_dict(subgraph, graph, model[key], property_path)
+            if isinstance(model[key], list) or isinstance(model[key], dict):
+                if isinstance(model[key], list):
+                    handle_list(subgraph, graph, model[key], property_path, property_name)
+                elif isinstance(model[key], dict):
+                    handle_dict(subgraph, graph, model[key], property_path)
             else:
                 subgraph.node(name=property_name, label=property_name)
 
@@ -43,15 +44,15 @@ def create_nodes(graph: graphviz.Digraph, model: dict, name_path: str = ROOT_PAT
     return placeholder_name
 
 
-def handle_list(subgraph: graphviz.Digraph, graph: graphviz.Digraph, model: list, key: str, property_name: str) -> str:
+def handle_list(subgraph: graphviz.Digraph, graph: graphviz.Digraph, model: list, key: str, property_name: str):
     if len(model) > 0:
         list_type = type(model[0])
         if isinstance(model[0], dict):
             placeholder_property = create_nodes(graph, model[0], key)
-            subgraph.edge(key, placeholder_property)
+            subgraph.edge(property_name, placeholder_property)
         else:
             property_name = property_name + "[" + list_type.__name__ + "]"
-    return property_name
+            subgraph.node(name=property_name, label=property_name)
 
 
 def handle_dict(subgraph: graphviz.Digraph, graph: graphviz.Digraph, model: dict, key: str):
