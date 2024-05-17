@@ -12,7 +12,7 @@ Call pipenv to install required dependencies:
 > pipenv install
 
 Install new dependency:
-> pipenv install <package-name>
+> pipenv install \<package-name\>
 
 ## Locking and Updating pipe
 

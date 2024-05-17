@@ -10,7 +10,7 @@ CLUSTER_PREFIX: str = "cluster_"
 
 
 def main():
-    if len(sys.argv) <= 0:
+    if len(sys.argv) <= 1:
         print("Expected JSON file path as first program argument.")
         return
 
