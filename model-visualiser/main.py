@@ -60,7 +60,7 @@ def handle_dict(subgraph: graphviz.Digraph, graph: graphviz.Digraph, model: dict
 
 
 def output_file_name(input_file_name: str, output_format: str) -> str:
-    split = input_file_name.split(PERIOD)
+    split = input_file_name.rsplit(PERIOD, maxsplit=1)
     if len(split) > 0:
         return split[0] + PERIOD + output_format
     return input_file_name + PERIOD + output_format
