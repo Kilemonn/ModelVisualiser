@@ -14,13 +14,19 @@ def main():
         print("Expected JSON file path as first program argument.")
         return
 
+    filename = sys.argv[1]
+    graph = create_graph_from_filename(filename)
+    
     output_format = "png"
-    file_name = sys.argv[1]
+    graph.render(outfile=output_file_name(filename, output_format), format=output_format)
+
+
+def create_graph_from_filename(filename: str) -> graphviz.Digraph:
     graph = graphviz.Digraph(node_attr={'shape': 'record'})
-    with open(file_name, "r") as file:
+    with open(filename, "r") as file:
         model = json.loads(file.read())
         create_nodes(graph, model)
-    graph.render(outfile=output_file_name(file_name, output_format), format=output_format)
+    return graph
 
 
 def create_nodes(graph: graphviz.Digraph, model: dict, name_path: str = ROOT_PATH) -> str:
