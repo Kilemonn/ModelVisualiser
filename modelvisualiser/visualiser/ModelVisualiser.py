@@ -1,37 +1,21 @@
 import json
-import sys
 
 import graphviz
 
-ROOT_PATH: str = "root"
-PERIOD = "."
-EMPTY_SUFFIX: str = "_empty"
-CLUSTER_PREFIX: str = "cluster_"
-
-
-def main():
-    if len(sys.argv) <= 1:
-        print("Expected JSON file path as first program argument.")
-        return
-
-    filename = sys.argv[1]
-    graph = create_graph_from_filename(filename)
-    
-    output_format = "png"
-    graph.render(outfile=output_file_name(filename, output_format), format=output_format)
+from modelvisualiser.visualiser import Constants
 
 
 def create_graph_from_filename(filename: str) -> graphviz.Digraph:
     graph = graphviz.Digraph(node_attr={'shape': 'record'})
     with open(filename, "r") as file:
         model = json.loads(file.read())
-        create_nodes(graph, model)
+    create_nodes(graph, model)
     return graph
 
 
-def create_nodes(graph: graphviz.Digraph, model: dict, name_path: str = ROOT_PATH) -> str:
-    placeholder_name = name_path + EMPTY_SUFFIX
-    with graph.subgraph(name=CLUSTER_PREFIX + name_path) as subgraph:
+def create_nodes(graph: graphviz.Digraph, model: dict, name_path: str = Constants.ROOT_PATH) -> str:
+    placeholder_name = name_path + Constants.EMPTY_SUFFIX
+    with graph.subgraph(name=Constants.CLUSTER_PREFIX + name_path) as subgraph:
         subgraph.attr(label=name_path)
         for key in model:
             key_type = type(model[key])
@@ -45,7 +29,9 @@ def create_nodes(graph: graphviz.Digraph, model: dict, name_path: str = ROOT_PAT
             else:
                 subgraph.node(name=property_name, label=property_name)
 
-        subgraph.node(name=placeholder_name, label="")
+        # We shouldn't blindly create an empty node in the root since nothing can link back to it
+        if name_path != Constants.ROOT_PATH:
+            subgraph.node(name=placeholder_name, label="")
 
     return placeholder_name
 
@@ -67,11 +53,7 @@ def handle_dict(subgraph: graphviz.Digraph, graph: graphviz.Digraph, model: dict
 
 
 def output_file_name(input_file_name: str, output_format: str) -> str:
-    split = input_file_name.rsplit(PERIOD, maxsplit=1)
+    split = input_file_name.rsplit(Constants.PERIOD, maxsplit=1)
     if len(split) > 0:
-        return split[0] + PERIOD + output_format
-    return input_file_name + PERIOD + output_format
-
-
-if __name__ == '__main__':
-    main()
+        return split[0] + Constants.PERIOD + output_format
+    return input_file_name + Constants.PERIOD + output_format
