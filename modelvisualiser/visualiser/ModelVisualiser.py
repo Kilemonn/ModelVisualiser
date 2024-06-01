@@ -1,16 +1,35 @@
 import json
+from typing import Any
 
 import graphviz
+import puremagic
+import yaml
 
 from modelvisualiser.visualiser import Constants
+
+JSON_MIME: str = "application/json"
+YAML_MIME: str = "application/x-yaml"
 
 
 def create_graph_from_filename(filename: str) -> graphviz.Digraph:
     graph = graphviz.Digraph(node_attr={'shape': 'record'})
-    with open(filename, "r") as file:
-        model = json.loads(file.read())
+    model = load_file(filename)
     create_nodes(graph, model)
     return graph
+
+
+def load_file(filename: str) -> Any:
+    file_type = puremagic.magic_file(filename)
+    # print(file_type)
+    with open(filename, "r") as file:
+        if len(file_type) > 0:
+            if file_type[0].mime_type == JSON_MIME:
+                return json.loads(file.read())
+            elif file_type[0].mime_type == YAML_MIME:
+                return yaml.safe_load(file.read())
+        else:
+            print("Unable to determine input file's type, attempting to parse as JSON.")
+            return json.loads(file.read())
 
 
 def create_nodes(graph: graphviz.Digraph, model: dict, name_path: str = Constants.ROOT_PATH) -> str:

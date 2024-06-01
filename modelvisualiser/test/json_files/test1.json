@@ -1,6 +1,7 @@
 {
   "string-key": "test",
   "int-key": 12309,
+  "float-key": 5.3,
   "bool-key": true,
   "object-key": {
     "sub-object-key1": "another test"

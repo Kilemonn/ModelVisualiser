@@ -1,0 +1,19 @@
+services:
+  hello-world:
+    image: hello-world
+    depends_on:
+      queue:
+        condition: service_healthy
+  queue:
+    image: kilemon/message-queue
+    ports:
+      - "8080:8080"
+    environment:
+      message-queue.storage-medium: IN_MEMORY
+      message-queue.restriction-mode: NONE
+    healthcheck:
+      test: wget localhost:8080/queue/healthcheck
+      start_period: 3s
+      interval: 3s
+      timeout: 3s
+      retries: 5
