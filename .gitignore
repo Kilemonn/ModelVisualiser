@@ -160,5 +160,5 @@ cython_debug/
 .idea/
 
 # Ignore output files that are created as part of the visualisation generation
-**/**/*.png
-**/**/*.gv
+**/*.png
+**/*.gv
