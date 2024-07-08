@@ -6,4 +6,4 @@ class YamlVisualiserTest(VisualiserTest):
     def test_yaml_file(self):
         filepath = "yaml_files/test.yml"
         graph = ModelVisualiser.create_graph_from_filename(filepath)
-        self.assertEqual(4, self.get_subgraph_count(graph))
+        self.assertEqual(8, self.get_subgraph_count(graph))
