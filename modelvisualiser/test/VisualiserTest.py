@@ -66,3 +66,34 @@ class VisualiserTest(unittest.TestCase):
             if VisualiserTest.SUBGRAPH in entry and subgraph_name + " {" in entry:
                 return i
         return -1
+
+    def verify_graph(self, graph: graphviz.Digraph, node_names: list[str], expected_node_counts: list[int], root_node_count: int, non_existent_node: str):
+        self.assertFalse(non_existent_node in node_names)
+        self.assertEqual(len(node_names), len(expected_node_counts))
+
+        self.assertEqual(len(node_names) + 1, self.get_subgraph_count(graph))
+        self.assertTrue(self.subgraph_with_name_exists(graph, "root"))
+        for node_name in node_names:
+            self.assertTrue(self.subgraph_with_name_exists(graph, node_name))
+
+        # Make sure some other random subgraph name does not exist
+        self.assertFalse(self.subgraph_with_name_exists(graph, non_existent_node))
+
+        self.assertEqual(len(node_names), self.get_empty_count(graph))
+        for node_name in node_names:
+            self.assertTrue(self.empty_with_name_exists(graph, node_name))
+
+        # Make sure there is no empty node for root
+        self.assertFalse(self.empty_with_name_exists(graph, "root"))
+        self.assertFalse(self.empty_with_name_exists(graph, non_existent_node))
+
+        self.assertEqual(len(node_names), self.get_linkage_count(graph))
+        for node_name in node_names:
+            self.assertTrue(self.linkage_exists(graph, node_name))
+
+        nodes = self.get_nodes_in_subgraph(graph, Constants.CLUSTER_PREFIX + "root")
+        self.assertEqual(root_node_count, len(nodes))
+
+        for node_name, node_count in zip(node_names, expected_node_counts):
+            nodes = self.get_nodes_in_subgraph(graph, f"\"{Constants.CLUSTER_PREFIX}root/{node_name}\"")
+            self.assertEqual(node_count, len(nodes))
