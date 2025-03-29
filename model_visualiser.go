@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/Kilemonn/ModelVisualiser/consts"
-	"github.com/Kilemonn/ModelVisualiser/model_visualiser"
+	"github.com/Kilemonn/ModelVisualiser/visualiser"
 )
 
 func main() {
@@ -22,20 +22,21 @@ func main() {
 		return
 	}
 
-	visualiser, err := model_visualiser.NewModelVisualiser(context.Background())
+	visualiser, err := visualiser.NewVisualiser(context.Background())
 	if err != nil {
 		fmt.Printf("Failed to create visualiser. Error: %s", err.Error())
 	}
 	defer visualiser.Close()
 
-	g, err := visualiser.FromFile(*inputFile)
+	graph, err := visualiser.FromFile(*inputFile)
 	if err != nil {
 		fmt.Printf("Failed to generate graph from input file [%s] with error: [%s]\n", *inputFile, err.Error())
 		return
 	}
+	defer graph.Close()
 
 	outputFile := outputFileName(*inputFile, *outputFormat)
-	err = visualiser.ToFile(g, outputFile)
+	err = visualiser.ToFile(graph, outputFile)
 	if err != nil {
 		fmt.Printf("Failed to write generated graph to file [%s] with error: [%s]\n", outputFile, err.Error())
 		return

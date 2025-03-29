@@ -1,7 +1,8 @@
-package model_visualiser
+package visualiser
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"reflect"
 
@@ -11,34 +12,36 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type ModelVisualiser struct {
+type Visualiser struct {
 	g   *graphviz.Graphviz
 	ctx context.Context
 }
 
-func NewModelVisualiser(ctx context.Context) (ModelVisualiser, error) {
+func NewVisualiser(ctx context.Context) (Visualiser, error) {
 	graph, err := graphviz.New(ctx)
 	if err != nil {
-		return ModelVisualiser{
-			g:   graph,
-			ctx: ctx,
-		}, nil
+		return Visualiser{}, err
 	}
-	return ModelVisualiser{}, err
+
+	return Visualiser{
+		g:   graph,
+		ctx: ctx,
+	}, nil
 }
 
-func (mv ModelVisualiser) FromFile(fileName string) (*graphviz.Graph, error) {
+func (mv Visualiser) FromFile(fileName string) (*graphviz.Graph, error) {
 	content, err := os.ReadFile(fileName)
 	if err != nil {
 		return nil, err
 	}
-	data := make(map[any]any)
+	data := make(map[string]any)
 
 	err = yaml.Unmarshal(content, &data)
 	if err != nil {
 		return nil, err
 	}
 
+	// TODO
 	// err = json.Unmarshal(content, &data)
 	// if err != nil {
 	// 	return nil, err
@@ -47,7 +50,7 @@ func (mv ModelVisualiser) FromFile(fileName string) (*graphviz.Graph, error) {
 	return mv.createGraph(data)
 }
 
-func (mv ModelVisualiser) createGraph(data map[any]any) (*graphviz.Graph, error) {
+func (mv Visualiser) createGraph(data map[string]any) (*graphviz.Graph, error) {
 	g, err := mv.g.Graph()
 	if err != nil {
 		return nil, err
@@ -61,24 +64,25 @@ func (mv ModelVisualiser) createGraph(data map[any]any) (*graphviz.Graph, error)
 	return g, err
 }
 
-func (mv ModelVisualiser) createNodes(graph *graphviz.Graph, data map[any]any, namePath string) (string, error) {
+func (mv Visualiser) createNodes(graph *graphviz.Graph, data map[string]any, namePath string) (string, error) {
 	placeHolderName := namePath + consts.EMPTY_SUFFIX
-	subgraph, err := graph.SubGraphByName(consts.CLUSTER_PREFIX + namePath)
+	subgraph, err := graph.CreateSubGraphByName(consts.CLUSTER_PREFIX + namePath)
 	if err != nil {
 		return "", err
 	}
 
-	// subgraph.Attr()
-	for _, k := range data {
-		propertyPath := namePath + "/" + k.(string)
+	// TODO
+	// subgraph.Attr("name", namePath)
+	for k, v := range data {
+		propertyPath := namePath + "/" + k
 		propertyName := propertyPath + " - " + string(reflect.TypeOf(k).String())
+		fmt.Printf("Key: %s\nProperty name: %s\n", k, propertyName)
 
-		valueType := reflect.TypeOf(data[k])
-
+		valueType := reflect.TypeOf(v)
 		if valueType.Kind() == reflect.Array || valueType.Kind() == reflect.Slice {
-			mv.handleList(subgraph, graph, data[k].([]any), k.(string), propertyName)
+			mv.handleList(subgraph, graph, v.([]any), k, propertyName)
 		} else if valueType.Kind() == reflect.Map {
-			mv.handleMap(subgraph, graph, data[k].(map[any]any), k.(string))
+			mv.handleMap(subgraph, graph, v.(map[string]any), k)
 		} else {
 			_, err := subgraph.CreateNodeByName(propertyName)
 			if err != nil {
@@ -97,14 +101,14 @@ func (mv ModelVisualiser) createNodes(graph *graphviz.Graph, data map[any]any, n
 	return placeHolderName, nil
 }
 
-func (mv ModelVisualiser) handleList(subgraph *cgraph.Graph, graph *graphviz.Graph, model []any, key string, propertyName string) error {
+func (mv Visualiser) handleList(subgraph *cgraph.Graph, graph *graphviz.Graph, model []any, key string, propertyName string) error {
 	if len(model) == 0 {
 		return nil
 	}
 
 	listType := reflect.TypeOf(model[0])
 	if listType.Kind() == reflect.Map {
-		return mv.handleMap(subgraph, graph, model[0].(map[any]any), key)
+		return mv.handleMap(subgraph, graph, model[0].(map[string]any), key)
 	} else {
 		propertyName = propertyName + "[" + listType.String() + "]"
 		_, err := subgraph.CreateNodeByName(propertyName)
@@ -112,15 +116,15 @@ func (mv ModelVisualiser) handleList(subgraph *cgraph.Graph, graph *graphviz.Gra
 	}
 }
 
-func (mv ModelVisualiser) handleMap(subgraph *cgraph.Graph, graph *graphviz.Graph, model map[any]any, key string) error {
-	placeHolderName, err := mv.createNodes(graph, model[0].(map[any]any), key)
+func (mv Visualiser) handleMap(subgraph *cgraph.Graph, graph *graphviz.Graph, model map[string]any, key string) error {
+	placeHolderName, err := mv.createNodes(graph, model, key)
 	if err != nil {
 		return err
 	}
 	return mv.createSubgraphEdgeBetweenNodesByName(subgraph, "", key, placeHolderName)
 }
 
-func (mv ModelVisualiser) createSubgraphEdgeBetweenNodesByName(subgraph *cgraph.Graph, edgeName string, node1Name string, node2Name string) error {
+func (mv Visualiser) createSubgraphEdgeBetweenNodesByName(subgraph *cgraph.Graph, edgeName string, node1Name string, node2Name string) error {
 	node1, err := subgraph.NodeByName(node1Name)
 	if err != nil {
 		return err
@@ -135,7 +139,7 @@ func (mv ModelVisualiser) createSubgraphEdgeBetweenNodesByName(subgraph *cgraph.
 	return err
 }
 
-func (mv ModelVisualiser) createGraphEdgeBetweenNodesByName(graph *graphviz.Graph, edgeName string, node1Name string, node2Name string) error {
+func (mv Visualiser) createGraphEdgeBetweenNodesByName(graph *graphviz.Graph, edgeName string, node1Name string, node2Name string) error {
 	node1, err := graph.NodeByName(node1Name)
 	if err != nil {
 		return err
@@ -150,13 +154,10 @@ func (mv ModelVisualiser) createGraphEdgeBetweenNodesByName(graph *graphviz.Grap
 	return err
 }
 
-func (mv ModelVisualiser) ToFile(graph *graphviz.Graph, outputFile string) error {
+func (mv Visualiser) ToFile(graph *graphviz.Graph, outputFile string) error {
 	return mv.g.RenderFilename(mv.ctx, graph, graphviz.PNG, outputFile)
 }
 
-func (mv ModelVisualiser) Close() error {
-	if mv.g != nil {
-		return mv.g.Close()
-	}
-	return nil
+func (mv Visualiser) Close() error {
+	return mv.g.Close()
 }
