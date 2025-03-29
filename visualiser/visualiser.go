@@ -2,6 +2,7 @@ package visualiser
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"reflect"
@@ -36,16 +37,14 @@ func (mv Visualiser) FromFile(fileName string) (*graphviz.Graph, error) {
 	}
 	data := make(map[string]any)
 
-	err = yaml.Unmarshal(content, &data)
+	// Just attempt to parse both json and yaml
+	err = json.Unmarshal(content, &data)
 	if err != nil {
-		return nil, err
+		err = yaml.Unmarshal(content, &data)
+		if err != nil {
+			return nil, err
+		}
 	}
-
-	// TODO
-	// err = json.Unmarshal(content, &data)
-	// if err != nil {
-	// 	return nil, err
-	// }
 
 	return mv.createGraph(data)
 }
@@ -137,21 +136,6 @@ func (mv Visualiser) createSubgraphEdgeBetweenNodesByName(subgraph *cgraph.Graph
 	}
 
 	_, err = subgraph.CreateEdgeByName(edgeName, node1, node2)
-	return err
-}
-
-func (mv Visualiser) createGraphEdgeBetweenNodesByName(graph *graphviz.Graph, edgeName string, node1Name string, node2Name string) error {
-	node1, err := graph.NodeByName(node1Name)
-	if err != nil {
-		return err
-	}
-
-	node2, err := graph.NodeByName(node2Name)
-	if err != nil {
-		return err
-	}
-
-	_, err = graph.CreateEdgeByName(edgeName, node1, node2)
 	return err
 }
 
