@@ -128,7 +128,7 @@ func (mv Visualiser) handleMap(subgraph *cgraph.Graph, graph *graphviz.Graph, mo
 	if err != nil {
 		return err
 	}
-	return mv.createSubgraphEdgeBetweenNodesByName(graph, subgraph, "", key, placeHolderName)
+	return mv.createSubgraphEdgeBetweenNodesByName(subgraph, "", key, placeHolderName)
 }
 
 func (mv Visualiser) createSubgraphEdgeBetweenNodesByName(subgraph *cgraph.Graph, edgeName string, node1Name string, node2Name string) error {
