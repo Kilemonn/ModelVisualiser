@@ -71,8 +71,7 @@ func (mv Visualiser) createNodes(graph *graphviz.Graph, data map[string]any, nam
 		return "", err
 	}
 
-	// TODO
-	// subgraph.Attr("name", namePath)
+	subgraph = subgraph.SetLabel(namePath)
 	for k, v := range data {
 		propertyPath := namePath + "/" + k
 		propertyName := propertyPath + " - " + string(reflect.TypeOf(k).String())
@@ -84,7 +83,7 @@ func (mv Visualiser) createNodes(graph *graphviz.Graph, data map[string]any, nam
 		} else if valueType.Kind() == reflect.Map {
 			mv.handleMap(subgraph, graph, v.(map[string]any), k)
 		} else {
-			_, err := subgraph.CreateNodeByName(propertyName)
+			err := mv.createNodeInSubGraph(subgraph, propertyName, propertyName)
 			if err != nil {
 				return "", err
 			}
@@ -92,13 +91,22 @@ func (mv Visualiser) createNodes(graph *graphviz.Graph, data map[string]any, nam
 	}
 
 	if namePath != consts.ROOT_PATH {
-		_, err := subgraph.CreateNodeByName(placeHolderName)
+		err := mv.createNodeInSubGraph(subgraph, placeHolderName, "")
 		if err != nil {
 			return "", err
 		}
 	}
 
 	return placeHolderName, nil
+}
+
+func (mv Visualiser) createNodeInSubGraph(subgraph *cgraph.Graph, nodeName string, nodeLabel string) error {
+	n, err := subgraph.CreateNodeByName(nodeName)
+	if err == nil {
+		n.SetShape(cgraph.BoxShape)
+		n.SetLabel(nodeLabel)
+	}
+	return err
 }
 
 func (mv Visualiser) handleList(subgraph *cgraph.Graph, graph *graphviz.Graph, model []any, key string, propertyName string) error {
@@ -111,8 +119,7 @@ func (mv Visualiser) handleList(subgraph *cgraph.Graph, graph *graphviz.Graph, m
 		return mv.handleMap(subgraph, graph, model[0].(map[string]any), key)
 	} else {
 		propertyName = propertyName + "[" + listType.String() + "]"
-		_, err := subgraph.CreateNodeByName(propertyName)
-		return err
+		return mv.createNodeInSubGraph(subgraph, propertyName, propertyName)
 	}
 }
 
@@ -121,7 +128,7 @@ func (mv Visualiser) handleMap(subgraph *cgraph.Graph, graph *graphviz.Graph, mo
 	if err != nil {
 		return err
 	}
-	return mv.createSubgraphEdgeBetweenNodesByName(subgraph, "", key, placeHolderName)
+	return mv.createSubgraphEdgeBetweenNodesByName(graph, subgraph, "", key, placeHolderName)
 }
 
 func (mv Visualiser) createSubgraphEdgeBetweenNodesByName(subgraph *cgraph.Graph, edgeName string, node1Name string, node2Name string) error {
