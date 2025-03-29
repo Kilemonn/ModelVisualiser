@@ -51,6 +51,7 @@ func (mv Visualiser) FromFile(fileName string) (*graphviz.Graph, error) {
 }
 
 func (mv Visualiser) createGraph(data map[string]any) (*graphviz.Graph, error) {
+	// TODO: node_attr={'shape': 'record'}
 	g, err := mv.g.Graph()
 	if err != nil {
 		return nil, err
@@ -154,8 +155,8 @@ func (mv Visualiser) createGraphEdgeBetweenNodesByName(graph *graphviz.Graph, ed
 	return err
 }
 
-func (mv Visualiser) ToFile(graph *graphviz.Graph, outputFile string) error {
-	return mv.g.RenderFilename(mv.ctx, graph, graphviz.PNG, outputFile)
+func (mv Visualiser) ToFile(graph *graphviz.Graph, outputFile string, outputFormat graphviz.Format) error {
+	return mv.g.RenderFilename(mv.ctx, graph, outputFormat, outputFile)
 }
 
 func (mv Visualiser) Close() error {

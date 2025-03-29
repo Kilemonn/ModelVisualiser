@@ -4,15 +4,17 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/Kilemonn/ModelVisualiser/consts"
 	"github.com/Kilemonn/ModelVisualiser/visualiser"
+	"github.com/goccy/go-graphviz"
 )
 
 func main() {
 	inputFile := flag.String(consts.INPUT_FILE, "", "Input File")
-	outputFormat := flag.String(consts.OUTPUT_FORMAT, consts.DEFAULT_OUTPUT_FORMAT, "Output image format")
+	outputFormat := flag.String(consts.OUTPUT_FORMAT, string(graphviz.PNG), "Output image format")
 
 	flag.Parse()
 
@@ -36,7 +38,7 @@ func main() {
 	defer graph.Close()
 
 	outputFile := outputFileName(*inputFile, *outputFormat)
-	err = visualiser.ToFile(graph, outputFile)
+	err = visualiser.ToFile(graph, outputFile, extensionToFormat(*outputFormat, graphviz.PNG))
 	if err != nil {
 		fmt.Printf("Failed to write generated graph to file [%s] with error: [%s]\n", outputFile, err.Error())
 		return
@@ -49,4 +51,20 @@ func outputFileName(inputFilename string, outputFormat string) string {
 		return inputFilename + consts.PERIOD + outputFormat
 	}
 	return inputFilename[:index] + consts.PERIOD + outputFormat
+}
+
+func extensionToFormat(outputFormat string, defaultFormat graphviz.Format) graphviz.Format {
+	lower := strings.ToLower(outputFormat)
+	formats := []graphviz.Format{graphviz.PNG, graphviz.JPG, graphviz.XDOT, graphviz.SVG}
+
+	formatStrings := make([]string, 0)
+	for _, format := range formats {
+		formatStrings = append(formatStrings, string(format))
+	}
+	index := slices.Index(formatStrings, lower)
+
+	if index == -1 {
+		return defaultFormat
+	}
+	return formats[index]
 }

@@ -1,10 +1,8 @@
 package consts
 
 const (
-	INPUT_FILE = "f"
-
-	OUTPUT_FORMAT         = "outFormat"
-	DEFAULT_OUTPUT_FORMAT = "png"
+	INPUT_FILE    = "f"
+	OUTPUT_FORMAT = "outFormat"
 
 	EMPTY_SUFFIX   = "_empty"
 	ROOT_PATH      = "root"
