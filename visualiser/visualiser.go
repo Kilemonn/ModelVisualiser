@@ -79,9 +79,9 @@ func (mv Visualiser) createNodes(graph *graphviz.Graph, data map[string]any, nam
 
 		valueType := reflect.TypeOf(v)
 		if valueType.Kind() == reflect.Array || valueType.Kind() == reflect.Slice {
-			mv.handleList(subgraph, graph, v.([]any), k, propertyName)
+			mv.handleListNode(subgraph, graph, v.([]any), k, propertyName)
 		} else if valueType.Kind() == reflect.Map {
-			mv.handleMap(subgraph, graph, v.(map[string]any), k)
+			mv.handleMapNode(graph, v.(map[string]any), k)
 		} else {
 			err := mv.createNodeInSubGraph(subgraph, propertyName, propertyName)
 			if err != nil {
@@ -100,49 +100,72 @@ func (mv Visualiser) createNodes(graph *graphviz.Graph, data map[string]any, nam
 	return placeHolderName, nil
 }
 
+func (mv Visualiser) createEdges(graph *graphviz.Graph, data map[string]any, namePath string) error {
+	subgraphName := consts.CLUSTER_PREFIX + namePath
+	subgraph, err := graph.SubGraphByName(subgraphName)
+	if err != nil || subgraph == nil {
+		return fmt.Errorf("subgraph with name [%s] does not exist", subgraphName)
+	}
+
+	for k, v := range data {
+		valueType := reflect.TypeOf(v)
+		if valueType.Kind() == reflect.Map {
+			mv.handleMapEdge(graph, v.(map[string]any), k)
+		}
+	}
+
+	return nil
+}
+
 func (mv Visualiser) createNodeInSubGraph(subgraph *cgraph.Graph, nodeName string, nodeLabel string) error {
 	n, err := subgraph.CreateNodeByName(nodeName)
-	if err == nil {
+	if err == nil && n != nil {
 		n.SetShape(cgraph.BoxShape)
 		n.SetLabel(nodeLabel)
 	}
 	return err
 }
 
-func (mv Visualiser) handleList(subgraph *cgraph.Graph, graph *graphviz.Graph, model []any, key string, propertyName string) error {
+func (mv Visualiser) handleListNode(subgraph *cgraph.Graph, graph *graphviz.Graph, model []any, key string, propertyName string) error {
 	if len(model) == 0 {
 		return nil
 	}
 
 	listType := reflect.TypeOf(model[0])
 	if listType.Kind() == reflect.Map {
-		return mv.handleMap(subgraph, graph, model[0].(map[string]any), key)
+		return mv.handleMapNode(graph, model[0].(map[string]any), key)
 	} else {
 		propertyName = propertyName + "[" + listType.String() + "]"
 		return mv.createNodeInSubGraph(subgraph, propertyName, propertyName)
 	}
 }
 
-func (mv Visualiser) handleMap(subgraph *cgraph.Graph, graph *graphviz.Graph, model map[string]any, key string) error {
-	placeHolderName, err := mv.createNodes(graph, model, key)
-	if err != nil {
-		return err
-	}
-	return mv.createSubgraphEdgeBetweenNodesByName(subgraph, "", key, placeHolderName)
+func (mv Visualiser) handleMapNode(graph *graphviz.Graph, model map[string]any, key string) error {
+	_, err := mv.createNodes(graph, model, key)
+	return err
 }
 
-func (mv Visualiser) createSubgraphEdgeBetweenNodesByName(subgraph *cgraph.Graph, edgeName string, node1Name string, node2Name string) error {
-	node1, err := subgraph.NodeByName(node1Name)
+func (mv Visualiser) handleMapEdge(graph *graphviz.Graph, model map[string]any, key string) error {
+	placeHolderName := key + consts.EMPTY_SUFFIX
+	err := mv.createEdges(graph, model, key)
+	if err != nil {
+		return err
+	}
+	return mv.createSubgraphEdgeBetweenNodesByName(graph, "", key, placeHolderName)
+}
+
+func (mv Visualiser) createSubgraphEdgeBetweenNodesByName(graph *graphviz.Graph, edgeName string, node1Name string, node2Name string) error {
+	node1, err := graph.NodeByName(node1Name)
 	if err != nil {
 		return err
 	}
 
-	node2, err := subgraph.NodeByName(node2Name)
+	node2, err := graph.NodeByName(node2Name)
 	if err != nil {
 		return err
 	}
 
-	_, err = subgraph.CreateEdgeByName(edgeName, node1, node2)
+	_, err = graph.CreateEdgeByName(edgeName, node1, node2)
 	return err
 }
 
