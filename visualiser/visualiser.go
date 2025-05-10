@@ -72,24 +72,24 @@ func (mv Visualiser) createNodes(graph *graphviz.Graph, data map[string]any, nam
 	if err != nil {
 		return "", err
 	}
+	subgraph.SetStyle(cgraph.FilledGraphStyle)
 
 	subgraph = subgraph.SetLabel(namePath)
 	for k, v := range data {
 		propertyPath := namePath + "/" + k
-		propertyName := propertyPath + " - " + string(reflect.TypeOf(k).String())
-		fmt.Printf("Key: %s\nProperty name: %s\n", k, propertyName)
 
 		valueType := reflect.TypeOf(v)
 		if valueType.Kind() == reflect.Array || valueType.Kind() == reflect.Slice {
 			mv.handleListNode(subgraph, graph, v.([]any), propertyPath, propertyPath+" - list")
 		} else if valueType.Kind() == reflect.Map {
-			err := mv.createNodeInSubGraph(subgraph, propertyPath, propertyName)
+			// Use property path twice here since its a complex type
+			err := mv.createNodeInSubGraph(subgraph, propertyPath, propertyPath)
 			if err != nil {
 				return "", err
 			}
 			mv.handleMapNode(graph, v.(map[string]any), propertyPath)
 		} else {
-			err := mv.createNodeInSubGraph(subgraph, propertyPath, propertyName)
+			err := mv.createNodeInSubGraph(subgraph, propertyPath, propertyPath+" - "+mv.transformTypeName(reflect.TypeOf(v).String()))
 			if err != nil {
 				return "", err
 			}
@@ -128,7 +128,7 @@ func (mv Visualiser) createEdges(graph *graphviz.Graph, data map[string]any, nam
 func (mv Visualiser) createNodeInSubGraph(subgraph *cgraph.Graph, nodeName string, nodeLabel string) error {
 	n, err := subgraph.CreateNodeByName(nodeName)
 	if err == nil && n != nil {
-		n.SetShape(cgraph.BoxShape)
+		n.SetShape(cgraph.RectShape)
 		n.SetLabel(nodeLabel)
 	}
 	return err
@@ -136,7 +136,7 @@ func (mv Visualiser) createNodeInSubGraph(subgraph *cgraph.Graph, nodeName strin
 
 func (mv Visualiser) handleListNode(subgraph *cgraph.Graph, graph *graphviz.Graph, model []any, key string, propertyName string) error {
 	if len(model) == 0 {
-		return nil
+		return mv.createNodeInSubGraph(subgraph, propertyName, propertyName)
 	}
 
 	listType := reflect.TypeOf(model[0])
@@ -147,7 +147,7 @@ func (mv Visualiser) handleListNode(subgraph *cgraph.Graph, graph *graphviz.Grap
 		}
 		return mv.handleMapNode(graph, model[0].(map[string]any), key)
 	} else {
-		propertyName = propertyName + "[" + listType.String() + "]"
+		propertyName = propertyName + "[" + mv.transformTypeName(listType.String()) + "]"
 		return mv.createNodeInSubGraph(subgraph, propertyName, propertyName)
 	}
 }
@@ -208,4 +208,12 @@ func (mv Visualiser) ToFile(graph *graphviz.Graph, outputFile string, outputForm
 
 func (mv Visualiser) Close() error {
 	return mv.g.Close()
+}
+
+func (mv Visualiser) transformTypeName(typeName string) string {
+	if typeName == "float64" {
+		return "int"
+	}
+
+	return typeName
 }
