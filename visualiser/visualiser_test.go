@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/Kilemonn/ModelVisualiser/visualiser/testutil"
 	"github.com/stretchr/testify/require"
 )
 
@@ -65,4 +66,38 @@ func TestNodeCreationInSubgraphs(t *testing.T) {
 	n, err = subgraph1.NodeByName(subNode2Name)
 	require.NoError(t, err)
 	require.Nil(t, n)
+}
+
+func TestFromFile_YamlTestFile(t *testing.T) {
+	ctx := context.Background()
+	visualiser, err := NewVisualiser(ctx)
+	require.NoError(t, err)
+
+	graph, err := visualiser.FromFile("../modelvisualiser/test/yaml_files/test.yml")
+	require.NoError(t, err)
+	defer graph.Close()
+
+	nodeNames := []string{"services", "services/queue", "services/queue/environment", "services/queue/healthcheck", "services/hello-world", "services/hello-world/depends_on", "services/hello-world/depends_on/queue"}
+	expectedNodeCount := []int{3, 5, 3, 6, 3, 2, 2}
+	rootNodeCount := 1
+	nonExistentNode := "some-other-node"
+
+	testutil.VerifyGraph(t, graph, nodeNames, expectedNodeCount, rootNodeCount, nonExistentNode)
+}
+
+func TestFromFile_JsonFile(t *testing.T) {
+	ctx := context.Background()
+	visualiser, err := NewVisualiser(ctx)
+	require.NoError(t, err)
+
+	graph, err := visualiser.FromFile("../modelvisualiser/test/json_files/test1.json")
+	require.NoError(t, err)
+	defer graph.Close()
+
+	nodeNames := []string{"object-key", "object-array", "empty-object"}
+	expectedNodeCount := []int{2, 3, 1}
+	rootNodeCount := 8
+	nonExistentNode := "some-other-node"
+
+	testutil.VerifyGraph(t, graph, nodeNames, expectedNodeCount, rootNodeCount, nonExistentNode)
 }

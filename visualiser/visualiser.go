@@ -61,6 +61,8 @@ func (mv Visualiser) createGraph(data map[string]any) (*graphviz.Graph, error) {
 		return nil, err
 	}
 
+	err = mv.createEdges(g, data, consts.ROOT_PATH)
+
 	return g, err
 }
 
@@ -79,11 +81,15 @@ func (mv Visualiser) createNodes(graph *graphviz.Graph, data map[string]any, nam
 
 		valueType := reflect.TypeOf(v)
 		if valueType.Kind() == reflect.Array || valueType.Kind() == reflect.Slice {
-			mv.handleListNode(subgraph, graph, v.([]any), k, propertyName)
+			mv.handleListNode(subgraph, graph, v.([]any), propertyPath, propertyPath+" - list")
 		} else if valueType.Kind() == reflect.Map {
-			mv.handleMapNode(graph, v.(map[string]any), k)
+			err := mv.createNodeInSubGraph(subgraph, propertyPath, propertyName)
+			if err != nil {
+				return "", err
+			}
+			mv.handleMapNode(graph, v.(map[string]any), propertyPath)
 		} else {
-			err := mv.createNodeInSubGraph(subgraph, propertyName, propertyName)
+			err := mv.createNodeInSubGraph(subgraph, propertyPath, propertyName)
 			if err != nil {
 				return "", err
 			}
@@ -110,7 +116,9 @@ func (mv Visualiser) createEdges(graph *graphviz.Graph, data map[string]any, nam
 	for k, v := range data {
 		valueType := reflect.TypeOf(v)
 		if valueType.Kind() == reflect.Map {
-			mv.handleMapEdge(graph, v.(map[string]any), k)
+			mv.handleMapEdge(graph, v.(map[string]any), namePath+"/"+k)
+		} else if valueType.Kind() == reflect.Array || valueType.Kind() == reflect.Slice {
+			mv.handleListEdge(graph, v.([]any), namePath+"/"+k)
 		}
 	}
 
@@ -133,6 +141,10 @@ func (mv Visualiser) handleListNode(subgraph *cgraph.Graph, graph *graphviz.Grap
 
 	listType := reflect.TypeOf(model[0])
 	if listType.Kind() == reflect.Map {
+		err := mv.createNodeInSubGraph(subgraph, key, propertyName)
+		if err != nil {
+			return err
+		}
 		return mv.handleMapNode(graph, model[0].(map[string]any), key)
 	} else {
 		propertyName = propertyName + "[" + listType.String() + "]"
@@ -151,21 +163,42 @@ func (mv Visualiser) handleMapEdge(graph *graphviz.Graph, model map[string]any, 
 	if err != nil {
 		return err
 	}
-	return mv.createSubgraphEdgeBetweenNodesByName(graph, "", key, placeHolderName)
+	return mv.createSubgraphEdgeBetweenNodesByName(graph, key+consts.ARROW+placeHolderName, key, placeHolderName)
+}
+
+func (mv Visualiser) handleListEdge(graph *graphviz.Graph, model []any, key string) error {
+	if len(model) == 0 {
+		return nil
+	}
+
+	placeHolderName := key + consts.EMPTY_SUFFIX
+	listType := reflect.TypeOf(model[0])
+	if listType.Kind() == reflect.Map {
+		// If its a list of a map type, continue the recursion
+		err := mv.createSubgraphEdgeBetweenNodesByName(graph, key+consts.ARROW+placeHolderName, key, placeHolderName)
+		if err != nil {
+			return err
+		}
+		return mv.createEdges(graph, model[0].(map[string]any), key)
+	}
+
+	// If its a list of a non-complex type, then no linkages need to be made
+
+	return nil
 }
 
 func (mv Visualiser) createSubgraphEdgeBetweenNodesByName(graph *graphviz.Graph, edgeName string, node1Name string, node2Name string) error {
-	node1, err := graph.NodeByName(node1Name)
-	if err != nil {
-		return err
+	node1, _ := graph.NodeByName(node1Name)
+	if node1 == nil {
+		return fmt.Errorf("failed to create edge [%s] because node [%s] does not exist", edgeName, node1Name)
 	}
 
-	node2, err := graph.NodeByName(node2Name)
-	if err != nil {
-		return err
+	node2, _ := graph.NodeByName(node2Name)
+	if node2 == nil {
+		return fmt.Errorf("failed to create edge [%s] because node [%s] does not exist", edgeName, node2Name)
 	}
 
-	_, err = graph.CreateEdgeByName(edgeName, node1, node2)
+	_, err := graph.CreateEdgeByName(edgeName, node1, node2)
 	return err
 }
 

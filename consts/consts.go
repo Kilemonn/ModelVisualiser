@@ -8,4 +8,6 @@ const (
 	ROOT_PATH      = "root"
 	PERIOD         = "."
 	CLUSTER_PREFIX = "cluster_"
+
+	ARROW = " -> "
 )
