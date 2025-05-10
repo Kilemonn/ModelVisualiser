@@ -1,29 +1,19 @@
 # ModelVisualiser
 A visualiser tool that is able to visualise complex JSON, YAML and XML model objects.
 
-# Getting Started
+## Installation 
 
-## Install Pipenv
+> go install github.com/Kilemonn/ModelVisualiser@latest
 
-Install pipenv:
-> pip install pipenv
+## Usage 
 
-Call pipenv to install required dependencies:
-> pipenv install
+The application requires 1 argument to run this is `-i` which specifies the input file path.
+The generated graph will be output in the same directory as the input file, with its file extension updated to appropriate file format it is being output to.
 
-Install new dependency:
-> pipenv install \<package-name\>
+E.g. (Generating with output format set to jpg)
+```bash
+ModelVisualiser -i myfile.yaml -f jpg
+# The graph will be generated and output as "myfile.jpg"
+```
 
-## Locking and Updating pipe
-
-`pipenv lock` — records the new requirements to the Pipfile.lock file.
-
-`pipenv update` — records the new requirements to the Pipfile.lock file and installs the missing dependencies on the Python interpreter.
-
-# Usage
-
-The program can be run using the `python3` interpreter. The application is expecting a single commandline argument which is the path to the input file that you wish to visualise.
-
-> python3 main.py path/to/file.json
-
-The output is always a `.png` file for now.
+You can get application usage by using `-h` or `--help`.

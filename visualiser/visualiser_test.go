@@ -73,7 +73,7 @@ func TestFromFile_YamlTestFile(t *testing.T) {
 	visualiser, err := NewVisualiser(ctx)
 	require.NoError(t, err)
 
-	graph, err := visualiser.FromFile("../modelvisualiser/test/yaml_files/test.yml")
+	graph, err := visualiser.FromFile("test_files/yaml_files/test.yml")
 	require.NoError(t, err)
 	defer graph.Close()
 
@@ -90,13 +90,13 @@ func TestFromFile_JsonFile(t *testing.T) {
 	visualiser, err := NewVisualiser(ctx)
 	require.NoError(t, err)
 
-	graph, err := visualiser.FromFile("../modelvisualiser/test/json_files/test1.json")
+	graph, err := visualiser.FromFile("test_files/json_files/test1.json")
 	require.NoError(t, err)
 	defer graph.Close()
 
 	nodeNames := []string{"object-key", "object-array", "empty-object"}
 	expectedNodeCount := []int{2, 3, 1}
-	rootNodeCount := 8
+	rootNodeCount := 9
 	nonExistentNode := "some-other-node"
 
 	testutil.VerifyGraph(t, graph, nodeNames, expectedNodeCount, rootNodeCount, nonExistentNode)

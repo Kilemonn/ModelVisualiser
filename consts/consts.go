@@ -1,8 +1,8 @@
 package consts
 
 const (
-	INPUT_FILE    = "f"
-	OUTPUT_FORMAT = "outFormat"
+	INPUT_FILE    = "i"
+	OUTPUT_FORMAT = "f"
 
 	EMPTY_SUFFIX   = "_empty"
 	ROOT_PATH      = "root"

@@ -13,8 +13,8 @@ import (
 )
 
 func main() {
-	inputFile := flag.String(consts.INPUT_FILE, "", "Input File")
-	outputFormat := flag.String(consts.OUTPUT_FORMAT, string(graphviz.PNG), "Output image format")
+	inputFile := flag.String(consts.INPUT_FILE, "", "Input file path")
+	outputFormat := flag.String(consts.OUTPUT_FORMAT, string(graphviz.PNG), "Output image format e.g. jpg/png/svg (png is the default)")
 
 	flag.Parse()
 
