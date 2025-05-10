@@ -1,6 +1,7 @@
 package visualiser
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	"github.com/Kilemonn/ModelVisualiser/consts"
 	"github.com/goccy/go-graphviz"
 	"github.com/goccy/go-graphviz/cgraph"
+	"github.com/sbabiv/xml2map"
 	"gopkg.in/yaml.v3"
 )
 
@@ -37,12 +39,16 @@ func (mv Visualiser) FromFile(fileName string) (*graphviz.Graph, error) {
 	}
 	data := make(map[string]any)
 
-	// Just attempt to parse both json and yaml
+	// Just attempt to parse the world
 	err = json.Unmarshal(content, &data)
 	if err != nil {
 		err = yaml.Unmarshal(content, &data)
 		if err != nil {
-			return nil, err
+			decoder := xml2map.NewDecoder(bytes.NewReader(content))
+			data, err = decoder.Decode()
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
