@@ -1,7 +1,6 @@
 package testutil
 
 import (
-	"fmt"
 	"maps"
 	"slices"
 	"strings"
@@ -12,23 +11,25 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func GetGraphCount(graph *graphviz.Graph) int {
-	return len(GetSubGraphEntries(graph))
+func GetGraphCount(t *testing.T, graph *graphviz.Graph) int {
+	return len(GetSubGraphEntries(t, graph))
 }
 
-func GetSubGraphEntries(graph *graphviz.Graph) []string {
+func GetSubGraphEntries(t *testing.T, graph *graphviz.Graph) []string {
 	subGraphNames := []string{}
 
 	g, err := graph.GraphRoot().FirstSubGraph()
+	require.NoError(t, err)
 	for g != nil && err == nil {
 		subGraphNames = append(subGraphNames, g.Label())
 		g, err = g.NextSubGraph()
+		require.NoError(t, err)
 	}
 	return subGraphNames
 }
 
-func SubGraphWithNameExists(graph *graphviz.Graph, subGraphName string) bool {
-	subGraphEntries := GetSubGraphEntries(graph)
+func SubGraphWithNameExists(t *testing.T, graph *graphviz.Graph, subGraphName string) bool {
+	subGraphEntries := GetSubGraphEntries(t, graph)
 	for _, entry := range subGraphEntries {
 		if strings.Contains(entry, subGraphName) {
 			return true
@@ -37,35 +38,36 @@ func SubGraphWithNameExists(graph *graphviz.Graph, subGraphName string) bool {
 	return false
 }
 
-func GetEmptyCount(graph *graphviz.Graph) int {
-	return len(GetEmptyNodes(graph))
+func GetEmptyCount(t *testing.T, graph *graphviz.Graph) int {
+	return len(GetEmptyNodes(t, graph))
 }
 
-func GetEmptyNodes(graph *graphviz.Graph) []string {
+func GetEmptyNodes(t *testing.T, graph *graphviz.Graph) []string {
 	emptyNodes := []string{}
 
-	g, _ := graph.GraphRoot().FirstSubGraph()
+	g, err := graph.GraphRoot().FirstSubGraph()
+	require.NoError(t, err)
 	for g != nil {
-		n, _ := g.FirstNode()
+		n, err := g.FirstNode()
+		require.NoError(t, err)
 		for n != nil {
 			name, err := n.Name()
-			if err != nil {
-				fmt.Printf("Failed to get node name %s", err.Error())
-				return emptyNodes
-			}
+			require.NoError(t, err)
 			if strings.Contains(name, consts.EMPTY_SUFFIX) {
 				emptyNodes = append(emptyNodes, name)
 			}
-			n, _ = g.NextNode(n)
+			n, err = g.NextNode(n)
+			require.NoError(t, err)
 		}
-		g, _ = g.NextSubGraph()
+		g, err = g.NextSubGraph()
+		require.NoError(t, err)
 	}
 
 	return emptyNodes
 }
 
-func EmptyNodeWithNameExists(graph *graphviz.Graph, nodeName string) bool {
-	emptyNodes := GetEmptyNodes(graph)
+func EmptyNodeWithNameExists(t *testing.T, graph *graphviz.Graph, nodeName string) bool {
+	emptyNodes := GetEmptyNodes(t, graph)
 	for _, entry := range emptyNodes {
 		if strings.Contains(entry, nodeName+consts.EMPTY_SUFFIX) {
 			return true
@@ -74,36 +76,34 @@ func EmptyNodeWithNameExists(graph *graphviz.Graph, nodeName string) bool {
 	return false
 }
 
-func GetLinkageCount(graph *graphviz.Graph) int {
-	return len(GetLinkages(graph))
+func GetLinkageCount(t *testing.T, graph *graphviz.Graph) int {
+	return len(GetLinkages(t, graph))
 }
 
-func GetLinkages(graph *graphviz.Graph) []string {
+func GetLinkages(t *testing.T, graph *graphviz.Graph) []string {
 	linkages := make(map[string]bool)
 
-	g, _ := graph.GraphRoot().FirstSubGraph()
+	g, err := graph.GraphRoot().FirstSubGraph()
+	require.NoError(t, err)
 	for g != nil {
-		n, _ := g.FirstNode()
+		n, err := g.FirstNode()
+		require.NoError(t, err)
 		for n != nil {
-			e, _ := n.Root().FirstEdge(n)
+			e, err := n.Root().FirstEdge(n)
+			require.NoError(t, err)
 			for e != nil {
 				name, err := e.Name()
-				if err != nil {
-					fmt.Printf("Failed to get edge name %s", err.Error())
-
-					var slice []string
-					for key := range maps.Keys(linkages) {
-						slice = append(slice, key)
-					}
-					return slice
-				}
+				require.NoError(t, err)
 				linkages[name] = true
 
-				e, _ = n.Root().NextEdge(e, n)
+				e, err = n.Root().NextEdge(e, n)
+				require.NoError(t, err)
 			}
-			n, _ = g.NextNode(n)
+			n, err = g.NextNode(n)
+			require.NoError(t, err)
 		}
-		g, _ = g.NextSubGraph()
+		g, err = g.NextSubGraph()
+		require.NoError(t, err)
 	}
 
 	var slice []string
@@ -113,8 +113,8 @@ func GetLinkages(graph *graphviz.Graph) []string {
 	return slice
 }
 
-func LinkageExists(graph *graphviz.Graph, parentPropertyName string) bool {
-	linkages := GetLinkages(graph)
+func LinkageExists(t *testing.T, graph *graphviz.Graph, parentPropertyName string) bool {
+	linkages := GetLinkages(t, graph)
 	for _, l := range linkages {
 		split := strings.Split(l, consts.ARROW)
 		if len(split) >= 2 && strings.Contains(split[0], parentPropertyName) && strings.Contains(split[1], parentPropertyName) && strings.Contains(split[1], parentPropertyName+consts.EMPTY_SUFFIX) {
@@ -147,28 +147,28 @@ func VerifyGraph(t *testing.T, graph *graphviz.Graph, nodeNames []string, expect
 	require.False(t, slices.Contains(nodeNames, nonExistentNode))
 	require.Equal(t, len(nodeNames), len(expectedNodeCounts))
 
-	require.Equal(t, len(nodeNames)+1, GetGraphCount(graph))
-	require.True(t, SubGraphWithNameExists(graph, consts.ROOT_PATH))
+	require.Equal(t, len(nodeNames)+1, GetGraphCount(t, graph))
+	require.True(t, SubGraphWithNameExists(t, graph, consts.ROOT_PATH))
 
 	for _, name := range nodeNames {
-		require.True(t, SubGraphWithNameExists(graph, name))
+		require.True(t, SubGraphWithNameExists(t, graph, name))
 	}
 
 	// Make sure some other random subgraph name does not exist
-	require.False(t, SubGraphWithNameExists(graph, nonExistentNode))
+	require.False(t, SubGraphWithNameExists(t, graph, nonExistentNode))
 
-	require.Equal(t, len(nodeNames), GetEmptyCount(graph))
+	require.Equal(t, len(nodeNames), GetEmptyCount(t, graph))
 	for _, name := range nodeNames {
-		require.True(t, EmptyNodeWithNameExists(graph, name))
+		require.True(t, EmptyNodeWithNameExists(t, graph, name))
 	}
 
 	// Make sure there is no empty node for root
-	require.False(t, EmptyNodeWithNameExists(graph, consts.ROOT_PATH))
-	require.False(t, EmptyNodeWithNameExists(graph, nonExistentNode))
+	require.False(t, EmptyNodeWithNameExists(t, graph, consts.ROOT_PATH))
+	require.False(t, EmptyNodeWithNameExists(t, graph, nonExistentNode))
 
-	require.Equal(t, len(nodeNames), GetLinkageCount(graph))
+	require.Equal(t, len(nodeNames), GetLinkageCount(t, graph))
 	for _, name := range nodeNames {
-		require.True(t, LinkageExists(graph, name))
+		require.True(t, LinkageExists(t, graph, name))
 	}
 
 	rootNodes := GetNodesInSubGraph(t, graph, consts.CLUSTER_PREFIX+consts.ROOT_PATH)
